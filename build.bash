@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker build -t yuvipanda/jupyterhub-stress:v0.4.5 .
-docker push yuvipanda/jupyterhub-stress:v0.4.5
+docker build -t quay.io/zachglassman/jupyterhub-stress:v0.4.5 .
+docker push quay.io/zachglassman/jupyterhub-stress:v0.4.5
 
-docker build -t yuvipanda/kubectl:v1.9.0 -f Dockerfile.kubectl .
-docker push yuvipanda/kubectl:v1.9.0
+docker build -t quay.io/zachglassman/kubectl:v1.9.0 -f Dockerfile.kubectl .
+docker push quay.io/zachglassman/kubectl:v1.9.0
