@@ -147,7 +147,7 @@ class User {
             this.emitEvent('login.success', timeTaken);
         } catch(c) {
             let timeTaken = process.hrtime(startTime);
-            this.emitEvent('login.failure', timeTaken);
+            this.emitEvent('login.failure' + c, timeTaken);
         }
     }
 
