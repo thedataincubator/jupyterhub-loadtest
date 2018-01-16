@@ -265,7 +265,7 @@ class User {
         }
     }
 
-    executeCode(timeout) {
+    executeCodeCPU(timeout) {
         // Explicitly *not* an async defined function, since we want to
         // explictly return a Promise.
         let cancelled = false;
@@ -297,6 +297,43 @@ class User {
                 };
             };
             executeFib();
+        });
+    }
+
+    executeCodeRW(timeout) {
+        // Explicitly *not* an async defined function, since we want to
+        // explictly return a Promise.
+        let cancelled = false;
+
+        setTimeout(() => { cancelled = true; }, timeout);
+        return new Promise((resolve, reject) => {
+
+            let executeRW = () => {
+                if (cancelled) {
+                    this.emitEvent('code-execute.complete');
+                    resolve();
+                    return;
+                }
+                let future = this.kernel.requestExecute({
+                    code: "fp = open('testing_file.txt', 'w'); fp.write('hello_world\n'); fp.close();"
+                });
+                // This will fire if we don't have an answer back from the kernel within 1s
+                let startTime = process.hrtime();
+                let failureTimer = setTimeout(() => {
+                    let timeTaken = process.hrtime(startTime);
+                    this.emitEvent('code-execute.timeout', timeTaken);
+                    reject();
+                }, 1000);
+                future.onIOPub = (msg) => {
+                    clearTimeout(failureTimer);
+                    let timeTaken = process.hrtime(startTime);
+                    if (msg.content.text == '6765\n') {
+                        setTimeout(executeFib, 1000);
+                        this.emitEvent('code-execute.success', timeTaken);
+                    }
+                };
+            };
+            executeRW();
         });
     }
 
@@ -355,7 +392,12 @@ function main(hubUrl, userCount) {
         await u.login();
         await u.startServer();
         await u.startKernel();
-        await u.executeCode(userActiveDurationSeconds * 1000);
+        if (program.type == 'rw'){
+            await u.executeCodeRW(userActiveDurationSeconds * 1000);
+        } else{
+            await u.executeCodeCPU(userActiveDurationSeconds * 1000);    
+        }
+        
         await u.stopKernel();
         await u.stopServer();
 
@@ -368,6 +410,7 @@ function main(hubUrl, userCount) {
 
 program
     .version('0.1')
+    .option('--type [type]', 'stress test cpu usage and memory (cpu) or disk read and write (rw)', 'cpu')
     .option('--min-user-active-time [min-user-active-time]', 'Minimum amount of seconds users should be active', 60)
     .option('--max-user-active-time [max-user-active-time]', 'Maximum amount of seconds users should be active', 600)
     .option('--users-start-time [users-start-time]', 'Period of time (seconds) to distribute starting the users in', 300)

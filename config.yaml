@@ -1,11 +1,14 @@
 image:
   repository: quay.io/zachglassman/jupyterhub-stress
-  tag: v0.4.6
+  tag: v0.4.7
   pullPolicy: IfNotPresent
 resources: {}
 
 hub:
-  url: "https://clustertest.thedataincubator.co"
+  url: "https://clustertest2.thedataincubator.co"
+
+test:
+  type: rw
 
 users:
   count: 50

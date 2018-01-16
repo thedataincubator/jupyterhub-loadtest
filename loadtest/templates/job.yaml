@@ -37,6 +37,8 @@ spec:
           - node
           - --trace-warnings
           - stress.js
+          - --type
+          - {{ .Values.test.type | quote }}
           - --min-user-active-time
           - {{ .Values.users.runTime.min | quote }}
           - --max-user-active-time
